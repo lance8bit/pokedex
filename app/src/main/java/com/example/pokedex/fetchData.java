@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,8 +30,13 @@ public class fetchData extends AsyncTask<Void, Void, Void> {
     protected String results = "";
     protected ArrayList<String> strTypes; // Create an ArrayList object
     protected String pokSearch;
+    protected String curPokeId;
 
-    public fetchData(String pokSearch) {
+
+    private WeakReference<MainActivity> mainActivityWeakReference;
+
+    public fetchData(String pokSearch, MainActivity context) {
+        mainActivityWeakReference = new WeakReference<>(context);
         this.pokSearch = pokSearch;
         strTypes = new ArrayList<String>();
     }
@@ -79,6 +85,12 @@ public class fetchData extends AsyncTask<Void, Void, Void> {
                         "Height: " + jObject.getString("height") + "\n" +
                         "Weight: " + jObject.getString("weight");
 
+            // Save curID JSON
+            curPokeId = jObject.getString("id");
+
+            MainActivity mainActivity = mainActivityWeakReference.get();
+            mainActivity.curPoke = Integer.parseInt(curPokeId);
+
             // Get img SVG
             JSONObject sprites = new JSONObject(jObject.getString("sprites"));
             JSONObject other = new JSONObject(sprites.getString("other"));
@@ -92,6 +104,7 @@ public class fetchData extends AsyncTask<Void, Void, Void> {
                 JSONObject type2  = new JSONObject(type.getString("type"));
                 strTypes.add(type2.getString("name"));
             }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -100,15 +113,21 @@ public class fetchData extends AsyncTask<Void, Void, Void> {
         // Set info
         MainActivity.txtDisplay.setText(this.results);
 
+
         // Set main img
         SvgLoader.pluck()
                 .with(MainActivity.act)
                 .load(img, MainActivity.imgPok);
 
+        //IF TYPE IS ONLY ONE
+        if(strTypes.size() < 2){
+            MainActivity.imgType[1].setImageResource(android.R.color.transparent);
+        }
+
         // Set img types
         for(int i=0; i<strTypes.size(); i++){
             MainActivity.imgType[i].setImageResource(MainActivity.act.getResources().getIdentifier(strTypes.get(i), "drawable", MainActivity.act.getPackageName()));
         }
-
+        
     }
 }
