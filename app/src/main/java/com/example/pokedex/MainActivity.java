@@ -28,9 +28,11 @@ public class MainActivity extends AppCompatActivity{
     public static TextView txtDisplay;
     public static ImageView imgPok;
     public static Button btLeft, btRight;
+    public static ImageButton btSearch, btTypes;
     //public String inicial = "1";
     public int curPoke = 1;
     public ArrayList<String> typesList = new ArrayList<String>();
+    public ArrayList<String> pokeTypeSel = new ArrayList<String>();
 
     public static ImageView [] imgType;
 
@@ -49,6 +51,8 @@ public class MainActivity extends AppCompatActivity{
         imgType[1] = findViewById(R.id.imgType1);
         btLeft = findViewById(R.id.btnLeft);
         btRight = findViewById(R.id.btnRight);
+        btSearch = findViewById(R.id.btnSearch);
+        btTypes = findViewById(R.id.btnTypes);
 
         fetchData process_incial = new fetchData(inicial, this);
         process_incial.execute();
@@ -58,17 +62,15 @@ public class MainActivity extends AppCompatActivity{
 
         //Log.i("TYPES", "onCreate: "+typesList.get(1));
 
-        ImageButton btnSearch = findViewById(R.id.btnSearch);
-        btnSearch.setOnClickListener(new View.OnClickListener() {
+        btSearch.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 showTxtSearch();
             }
         });
 
-        ImageButton btnTypes = findViewById(R.id.btnTypes);
-        btnTypes.setOnClickListener(new View.OnClickListener() {
+        btTypes.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                showTypes();
+                showTypeList();
             }
         });
 
@@ -125,24 +127,17 @@ public class MainActivity extends AppCompatActivity{
         alert.show();
     }
 
-    public void showTypes(){
-
-        AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-        View mView = getLayoutInflater().inflate(R.layout.dialog_spinner, null);
-        alert.setTitle("Select a type");
-        Spinner tSpinner = (Spinner) mView.findViewById(R.id.spinner_types);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this,
-                android.R.layout.simple_spinner_item, typesList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        tSpinner.setAdapter(adapter);
-
-        alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+    public void showTypeList(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Pick a type")
+                .setItems(typesList.toArray(new String[0]), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-
+                Log.i("SELECTED", "onClick: "+typesList.get(i));
+                fetchPokesTypes getPokesList = new fetchPokesTypes(typesList.get(i), MainActivity.this);
+                getPokesList.execute();
             }
         });
-
+        builder.show();
     }
-
 }

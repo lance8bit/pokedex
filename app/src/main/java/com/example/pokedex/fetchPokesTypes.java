@@ -1,13 +1,9 @@
 package com.example.pokedex;
 
-
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.ahmadrosid.svgloader.SvgLoader;
-
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -19,23 +15,26 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class fetchDataType extends AsyncTask<Void, Void, Void> {
+public class fetchPokesTypes extends AsyncTask<Void, Void, Void> {
 
     protected String data = "";
-    protected ArrayList<String> strTypes; // Create an ArrayList object
+    protected String typeSearch;
+    protected ArrayList<String> pokesType; // Create an ArrayList object
 
     private WeakReference<MainActivity> mainActivityWeakReference;
 
-    public fetchDataType(MainActivity context) {
+    public fetchPokesTypes(String pokesType, MainActivity context) {
         mainActivityWeakReference = new WeakReference<>(context);
+        this.typeSearch = pokesType;
     }
 
     @Override
     protected Void doInBackground(Void... voids) {
+
         try {
             //Make API connection
-            URL url = new URL("https://pokeapi.co/api/v2/type/");
-            Log.i("logtest", "https://pokeapi.co/api/v2/type/");
+            URL url = new URL("https://pokeapi.co/api/v2/type/"+typeSearch);
+            Log.i("logtest", "https://pokeapi.co/api/v2/type/"+typeSearch);
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 
             // Read API results
@@ -60,24 +59,37 @@ public class fetchDataType extends AsyncTask<Void, Void, Void> {
     }
 
     @Override
-    protected void onPostExecute(Void aVoid){
+    protected void onPostExecute(Void aVoid) {
         JSONObject jObject = null;
-        JSONArray jArray = null;
+        JSONObject subjObject = null;
+        JSONArray jsonArray = null;
+        JSONArray subjArray = null;
 
         try {
             jObject = new JSONObject(data);
-            jArray = jObject.getJSONArray("results");
+            jsonArray = jObject.getJSONArray("pokemon");
 
             MainActivity mainActivity = mainActivityWeakReference.get();
-            mainActivity.typesList.clear();
+            mainActivity.pokeTypeSel.clear();
 
-            for (int i = 0; i < jArray.length(); i++) {
-                JSONObject rec = jArray.getJSONObject(i);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject rec = jsonArray.getJSONObject(i);
 
-                mainActivity.typesList.add(rec.getString("name"));
+                subjArray = rec.getJSONArray("pokemon");
+
+                for (int j = 0; j < subjArray.length(); j++) {
+                    subjObject = subjArray.getJSONObject(i);
+                    mainActivity.pokeTypeSel.add(subjObject.getString("name"));
+                }
             }
-        } catch (Exception e) {
+
+            for (int i = 0; i < mainActivity.pokeTypeSel.size(); i++) {
+                Log.i("POKEIN", "onPostExecute: " + mainActivity.pokeTypeSel.get(i));
+            }
+
+        } catch (Exception e){
             e.printStackTrace();
         }
+
     }
 }
